@@ -1,0 +1,61 @@
+services:
+  user-service:
+    image: user-service-image
+    container_name: user-service
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://pu:5432/city-db-user
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: diana123
+    depends_on:
+      - pu
+
+  device-service:
+    image: device-service-image
+    container_name: device-service
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://pd:5432/city-db-device
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: diana123
+    depends_on:
+      - pd
+
+  frontend:
+    image: fe-image
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - user-service
+      - device-service
+
+  pu:
+    image: postgres:latest
+    container_name: user-postgres
+    environment:
+       POSTGRES_USER: 'postgres'
+       POSTGRES_PASSWORD: 'diana123'
+       POSTGRES_DB: 'city-db-user'
+    ports:
+      - "5433:5432"
+    volumes:
+      - user_db_data:/var/lib/postgresql/data
+
+  pd:
+    image: postgres:latest
+    container_name: device-postgres
+    environment:
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'diana123'
+      POSTGRES_DB: 'city-db-device'
+    ports:
+      - "5434:5432"
+    volumes:
+      - device_db_data:/var/lib/postgresql/data
+
+volumes:
+  user_db_data:
+  device_db_data:

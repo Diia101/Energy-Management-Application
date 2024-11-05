@@ -1,0 +1,77 @@
+/* Admin Container */
+.admin-container {
+  padding: 20px;
+  background-color: #f0f0f0;
+  font-family: Arial, sans-serif;
+}
+
+/* Admin Title */
+h1 {
+  font-size: 28px;
+  color: #333;
+}
+
+/* Button Container */
+.button-container {
+  margin: 20px 0;
+  text-align: center;
+}
+
+/* Insert User Button */
+.button-container .btn-success {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  font-size: 16px;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+/* User Table */
+.user-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Table Header */
+.user-table th {
+  background-color: #007bff;
+  color: #fff;
+  padding: 12px;
+  text-align: left;
+}
+
+/* Table Rows */
+.user-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+/* Actions Buttons */
+.user-table .btn {
+  margin-right: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+}
+
+/* Edit Button */
+.user-table .btn-primary {
+  background-color: #28a745;
+  color: #fff;
+}
+
+/* Delete Button */
+.user-table .btn-danger {
+  background-color: #dc3545;
+  color: #fff;
+}
+
+/* Success Toast */
+.toast-success {
+  background-color: #28a745;
+  color: #fff;
+}
