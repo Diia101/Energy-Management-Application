@@ -1,0 +1,6 @@
+// export const HOST_PERSON = "http://localhost:8085/person"
+export const HOST_PERSON = "http://user-service.localhost/person"
+// export const HOST_DEVICE = "http://localhost:8081/device"
+export const HOST_DEVICE = "http://device-service.localhost/device"
+// export const HOST_MEASUREMENT = "http://localhost:8082/measurement"
+export const HOST_MEASUREMENT = "http://measurements-service.localhost/measurement"

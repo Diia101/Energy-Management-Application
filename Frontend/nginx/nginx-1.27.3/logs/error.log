@@ -1,0 +1,7 @@
+2024/11/29 15:38:01 [error] 27404#8860: *1 CreateFile() "C:\nginx\nginx-1.27.3/html/favicon.ico" failed (2: The system cannot find the file specified), client: 127.0.0.1, server: localhost, request: "GET /favicon.ico HTTP/1.1", host: "localhost", referrer: "http://localhost/"
+2024/11/29 15:40:38 [notice] 1200#1736: signal process started
+2024/11/29 15:54:43 [emerg] 5948#21736: "server" directive is not allowed here in C:\nginx\nginx-1.27.3\conf\nginx-custom.conf:1
+2024/11/29 15:55:06 [emerg] 5784#13372: "server" directive is not allowed here in C:\nginx\nginx-1.27.3\conf\nginx-custom.conf:1
+2024/11/29 15:56:09 [emerg] 11928#25112: host not found in upstream "frontend" in C:\nginx\nginx-1.27.3\conf\nginx-custom.conf:20
+2024/11/29 16:00:45 [emerg] 3864#10532: "server" directive is not allowed here in C:\nginx\nginx-1.27.3\conf\nginx-custom.conf:1
+2024/11/29 16:02:03 [emerg] 28176#22804: "server" directive is not allowed here in C:\nginx\nginx-1.27.3\conf\nginx-custom.conf:1

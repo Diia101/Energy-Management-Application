@@ -1,27 +1,109 @@
 services:
   user-service:
+    build:
+      context: ./Backend1/Person
+      dockerfile: Dockerfile
     image: user-service-image
-    container_name: user-service
-    ports:
-      - "8085:8085"
+    deploy:
+      replicas: 4
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://pu:5432/city-db-user
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: diana123
     depends_on:
       - pu
+    networks:
+      - mynetwork
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.user-service.rule=Host(`user-service.localhost`)"
+      - "traefik.http.services.user-service.loadbalancer.server.port=8085"
 
   device-service:
+    build:
+      context: ./Backend1/Device
+      dockerfile: Dockerfile
     image: device-service-image
-    container_name: device-service
-    ports:
-      - "8081:8081"
+    deploy:
+      replicas: 4
+#    ports:
+#      - "8081:8081"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://pd:5432/city-db-device
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: diana123
     depends_on:
       - pd
+    networks:
+      - mynetwork
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.device-service.rule=Host(`device-service.localhost`)"
+      - "traefik.http.services.device-service.loadbalancer.server.port=8081"
+
+  rabbitmq1:
+    image: rabbitmq:4.0.3-management
+    environment:
+      RABBITMQ_DEFAULT_HOST: localhost
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    networks:
+      - mynetwork
+
+  measurements-service:
+    build:
+      context: ./Backend1/Measurements
+      dockerfile: Dockerfile
+    image: measurements-image
+    depends_on:
+      - pm
+      - rabbitmq1
+#    deploy:
+#      replicas: 4
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://pm:5432/city-db-measurements
+      SPRING_DATASOURCE_PASSWORD: diana123
+      SPRING_RABBITMQ_HOST: rabbitmq1
+      SPRING_RABBITMQ_PORT: 5672
+      SPRING_RABBITMQ_USERNAME: guest
+      SPRING_RABBITMQ_PASSWORD: guest
+    ports:
+      - "8093:8082"
+    networks:
+      - mynetwork
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.measurements-service.rule=Host(`measurements-service.localhost`)"
+      - "traefik.http.services.measurements-service.loadbalancer.server.port=8082"
+
+  chat-service:
+    build:
+      context: ./Backend1/Chat
+      dockerfile: Dockerfile
+    image: chat-image
+#    depends_on:
+#      - pm
+#      - rabbitmq1
+    #    deploy:
+    #      replicas: 4
+#    environment:
+#      SPRING_DATASOURCE_URL: jdbc:postgresql://pm:5432/city-db-measurements
+#      SPRING_DATASOURCE_PASSWORD: diana123
+#      SPRING_RABBITMQ_HOST: rabbitmq1
+#      SPRING_RABBITMQ_PORT: 5672
+#      SPRING_RABBITMQ_USERNAME: guest
+#      SPRING_RABBITMQ_PASSWORD: guest
+    ports:
+      - "8095:8086"
+    networks:
+      - mynetwork
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chat-service.rule=Host(`chat-service.localhost`)"
+      - "traefik.http.services.chat-service.loadbalancer.server.port=8086"
 
   frontend:
     image: fe-image
@@ -31,18 +113,42 @@ services:
     depends_on:
       - user-service
       - device-service
+      - measurements-service
+    networks:
+      - mynetwork
+
+  reverse-proxy:
+    image: traefik:v3.2
+    container_name: reverse-proxy
+    command:
+      - --api.insecure=true
+      - --providers.docker
+      - --accesslog=true
+      - --accesslog.filepath=/var/log/traefik/access.log
+      - --log.level=DEBUG
+      - --entrypoints.web.address=:80
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - traefik_logs:/var/log/traefik
+    networks:
+      - mynetwork
 
   pu:
     image: postgres:latest
     container_name: user-postgres
     environment:
-       POSTGRES_USER: 'postgres'
-       POSTGRES_PASSWORD: 'diana123'
-       POSTGRES_DB: 'city-db-user'
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'diana123'
+      POSTGRES_DB: 'city-db-user'
     ports:
       - "5433:5432"
     volumes:
       - user_db_data:/var/lib/postgresql/data
+    networks:
+      - mynetwork
 
   pd:
     image: postgres:latest
@@ -55,7 +161,29 @@ services:
       - "5434:5432"
     volumes:
       - device_db_data:/var/lib/postgresql/data
+    networks:
+      - mynetwork
+
+  pm:
+    image: postgres
+    container_name: measurement-postgres
+    environment:
+      POSTGRES_DB: 'city-db-measurements'
+      POSTGRES_USER: 'postgres'
+      POSTGRES_PASSWORD: 'diana123'
+    ports:
+      - "5435:5432"
+    volumes:
+      - measurement_db_data:/var/lib/postgresql/data
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge  # Creează o rețea comună pentru toate serviciile
 
 volumes:
   user_db_data:
   device_db_data:
+  measurement_db_data:
+  traefik_logs:

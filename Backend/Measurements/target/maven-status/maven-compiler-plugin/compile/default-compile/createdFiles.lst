@@ -1,0 +1,10 @@
+ro\tuc\ds2020\Ds2020Application.class
+ro\tuc\ds2020\services\MeasurementService.class
+ro\tuc\ds2020\entities\Measurement.class
+ro\tuc\ds2020\entities\RestTemplateConfig.class
+ro\tuc\ds2020\websocket\WebSocketConfig.class
+ro\tuc\ds2020\entities\SensorDataEntity.class
+ro\tuc\ds2020\repositories\IMeasurementRepository.class
+ro\tuc\ds2020\websocket\WebSocketController.class
+ro\tuc\ds2020\controllers\MeasurementController.class
+ro\tuc\ds2020\Ds2020Application$SensorData.class

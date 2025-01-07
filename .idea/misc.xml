@@ -6,7 +6,16 @@
       <list>
         <option value="$PROJECT_DIR$/Backend1/Device/pom.xml" />
         <option value="$PROJECT_DIR$/Backend1/Person/pom.xml" />
+        <option value="$PROJECT_DIR$/../Backend2/Measurements/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend1/Measurements/pom.xml" />
+        <option value="$PROJECT_DIR$/ds-2020-3/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend1/Chat/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/ds-2020-3/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_23" default="true" project-jdk-name="openjdk-23" project-jdk-type="JavaSDK">
