@@ -1,7 +1,7 @@
 services:
   user-service:
     build:
-      context: ./Backend1/Person
+      context: ./Backend/Person
       dockerfile: Dockerfile
     image: user-service-image
     deploy:
@@ -21,11 +21,11 @@ services:
 
   device-service:
     build:
-      context: ./Backend1/Device
+      context: ./Backend/Device
       dockerfile: Dockerfile
     image: device-service-image
     deploy:
-      replicas: 4
+      replicas: 1
 #    ports:
 #      - "8081:8081"
     environment:
@@ -50,12 +50,18 @@ services:
     ports:
       - "15672:15672"
       - "5672:5672"
+    healthcheck:
+      test: [ "CMD", "rabbitmqctl", "status" ]
+      #test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - mynetwork
 
   measurements-service:
     build:
-      context: ./Backend1/Measurements
+      context: ./Backend/Measurements
       dockerfile: Dockerfile
     image: measurements-image
     depends_on:
@@ -81,7 +87,7 @@ services:
 
   chat-service:
     build:
-      context: ./Backend1/Chat
+      context: ./Backend/Chat
       dockerfile: Dockerfile
     image: chat-image
 #    depends_on:
@@ -178,9 +184,52 @@ services:
     networks:
       - mynetwork
 
+  simulator:
+    image: simulator-image
+    build:
+      context: ../Backend2/Reader
+    depends_on:
+      rabbitmq1:
+        condition: service_healthy
+    environment:
+      RABBITMQ_HOST: rabbitmq1
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+    #      CSV_FILE_PATH: /data/sensor.csv
+    volumes:
+      - C:/Users/Primarie_PC4/Desktop/TI sem1/SD/Backend2/Reader/sensor.csv:/data/sensor.csv
+      - C:/Users/Primarie_PC4/Desktop/TI sem1/SD/Backend2/Reader/id.txt:/data/id.txt
+    networks:
+      - mynetwork
+
+  simulator1:
+      image: simulator2-image
+      build:
+        context: ../Backend2/Reader1
+      depends_on:
+        rabbitmq1:
+          condition: service_healthy
+      environment:
+        RABBITMQ_HOST: rabbitmq1
+        RABBITMQ_PORT: 5672
+        RABBITMQ_USERNAME: guest
+        RABBITMQ_PASSWORD: guest
+      #      CSV_FILE_PATH: /data/sensor.csv
+      volumes:
+        - C:/Users/Primarie_PC4/Desktop/TI sem1/SD/Backend2/Reader1/sensor.csv:/data/sensor.csv
+        - C:/Users/Primarie_PC4/Desktop/TI sem1/SD/Backend2/Reader1/id.txt:/data/id.txt
+      networks:
+        - mynetwork
+
 networks:
   mynetwork:
     driver: bridge  # Creează o rețea comună pentru toate serviciile
+
+#networks:
+#  mynetwork:
+#    external:
+#      name: ds2024_30641_muntean_diana_gratiana_assig3_mynetwork
 
 volumes:
   user_db_data:

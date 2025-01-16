@@ -10,7 +10,7 @@
         <module name="ds-2020-3 (2) (org.example)" />
         <module name="ds-2020 (1)" />
         <module name="ds-2020" />
-        <module name="ds-2020 (2)" />
+        <module name="ds-2020 (3)" />
       </profile>
       <profile name="Annotation profile for ds-2020" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
@@ -18,9 +18,8 @@
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.30/lombok-1.18.30.jar" />
         </processorPath>
-        <module name="ds-2020 (3)" />
+        <module name="ds-2020 (2)" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

@@ -16,28 +16,21 @@ public class DeviceService {
     IDeviceRepository iDeviceRepository;
 
     public List<Device> getAll(){
-        /*List<Device> dev = iDeviceRepository.findAll();
-        List<Device> devdereturnat = new ArrayList<>();
-        for (Device d: dev) {
-            if(d.getId() == userid){
-                devdereturnat. add (d);
-            }
-        }*/
-
-        // chatgpt -> filtrare pe o lista de device, pe campu x cu lambda streams
         return iDeviceRepository.findAll();
     }
+
+    //toate dispozitivele pt un client
     @Autowired
     private IDeviceRepository deviceRepository;
     public List<Device> getDevicesForClient(int idClient) {
         System.out.println("id client: "+idClient);
-        List<Device> allDevices = deviceRepository.findAll();
+        List<Device> allDevices = deviceRepository.findAll(); //dispozitivele din bazade date
         List<Device> devicesForClient = new ArrayList<>();
 
         for (Device device : allDevices) {
             if (device.getIdClient() == idClient) {
                 System.out.println("device: " + device);
-                devicesForClient.add(device);
+                devicesForClient.add(device); //adaug doar dispozitivele clientului respectiv
             }
         }
 
@@ -61,19 +54,18 @@ public class DeviceService {
 
     public void deleteById(Integer clientId)
     {
-        List<Device> devices = deviceRepository.findAllByClientId(clientId);
+        List<Device> devices = deviceRepository.findAllByClientId(clientId); //dispozitivele clientului
         if (!devices.isEmpty()) {
-            deviceRepository.deleteAll(devices);
+            deviceRepository.deleteAll(devices); //le sterg
         } else {
-            // pot loga un mesaj sau arunca o excepție customizată dacă vrei să tratezi cazul în mod specific
             System.out.println("No devices found for clientId: " + clientId);
         }
     }
 
     public Device updateDevice(Integer id, String description, String adress, Integer maxHour){
-        Optional<Device> deviceOptional = iDeviceRepository.findById(id);
+        Optional<Device> deviceOptional = iDeviceRepository.findById(id); //gasesc dispozitivul dupa id
 
-        if (deviceOptional.isPresent()) {
+        if (deviceOptional.isPresent()) { //daca exista fac modificarile
             Device oldDevice = deviceOptional.get();
             oldDevice.setDescription(description);
             oldDevice.setAdress(adress);
@@ -81,6 +73,7 @@ public class DeviceService {
         }
         return null;
     }
+
     public int getMaxHour(Integer id) {
         Device device = iDeviceRepository.findById(id).orElseThrow(() -> new IllegalStateException("Device not found"));
 

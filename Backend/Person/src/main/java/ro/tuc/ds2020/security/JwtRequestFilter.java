@@ -19,29 +19,32 @@ import ro.tuc.ds2020.security.JwtUserDetailsService;
 
 import io.jsonwebtoken.ExpiredJwtException;
 
+//procesez fiecare cerere http si verific daca e valid tokenul
+//extrag și validez token-ul JWT din antetul cererii, autentifică utilizatorul dacă token-ul este valid
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     @Autowired
-    private JwtUserDetailsService jwtUserDetailsService;
+    private JwtUserDetailsService jwtUserDetailsService; //incarc detaliile utilizatorului
 
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
+    //procesez cererile http si extrag token
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-
+//extrag token din antet
         final String requestTokenHeader = request.getHeader("Authorization");
 
         String username = null;
         String jwtToken = null;
-        // JWT Token is in the form "Bearer token". Remove Bearer word and get
-        // only the Token
+       //extrag token jwt si verific daca incepe cu bearer
         if (requestTokenHeader != null && requestTokenHeader.startsWith("Bearer ")) {
-            jwtToken = requestTokenHeader.substring(7);
+            jwtToken = requestTokenHeader.substring(7); //elimin prefixul bearer
+            //obtin username din token
             try {
-                username = jwtTokenUtil.getUsernameFromToken(jwtToken);
+                username = jwtTokenUtil.getUsernameFromToken(jwtToken); //extrag numele de utilizator din token
             } catch (IllegalArgumentException e) {
                 System.out.println("Unable to get JWT Token");
             } catch (ExpiredJwtException e) {
@@ -51,22 +54,18 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             logger.warn("JWT Token does not begin with Bearer String");
         }
 
-        // Once we get the token validate it.
+        // verific daca user e deja autentificat
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
+            //incarc informatiile userului din baza de date
             UserDetails userDetails = this.jwtUserDetailsService.loadUserByUsername(username);
 
-            // if token is valid configure Spring Security to manually set
-            // authentication
+            // daca token e valid si nu a expirat
             if (jwtTokenUtil.validateToken(jwtToken, userDetails)) {
-
+                //configurez autentificarea spring security
                 UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
                         userDetails, null, userDetails.getAuthorities());
                 usernamePasswordAuthenticationToken
                         .setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                // After setting the Authentication in the context, we specify
-                // that the current user is authenticated. So it passes the
-                // Spring Security Configurations successfully.
                 SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
             }
         }

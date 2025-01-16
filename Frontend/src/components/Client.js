@@ -6,65 +6,44 @@ import SockJsClient from 'react-stomp';
 import { HOST_MEASUREMENT } from "../Hosts";
 import { useNavigate } from "react-router-dom";
 import Card from 'react-bootstrap/Card';
-import MonitoringChart from './MonitoringChart'; // Importă componenta MonitoringChart
+import MonitoringChart from './MonitoringChart';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
-
-
-// // Funcție pentru a obține idClient după username
-// async function getClientIdByUsername(username) {
-//   try {
-//     const response = await fetch(`http://user-service.localhost/person/getByUsername?username=${username}`, {
-//       method: 'GET',
-//       headers: {
-//         'Authorization': `Bearer ${localStorage.getItem('jwtToken')}`
-//       }
-//     });
-//
-//     if (response.ok) {
-//       const user = await response.json();
-//       console.log('ID Client:', user.id);
-//       return user.id;
-//     } else {
-//       console.error('Failed to fetch user data');
-//     }
-//   } catch (error) {
-//     console.error('Error:', error);
-//   }
-// }
-
-
-  async function getClientIdByUsername(username) {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('Token not found in local storage');
-        return;
-      }
-
-      const headers = {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': `Bearer ${token}`,
-      };
-
-      const response = await axios.get(`http://user-service.localhost/person/getByUsername?username=${username}`, { headers });
-
-      if (response.status === 200) {
-        const user = response.data;
-        console.log('ID Client:', user.id);
-        return user.id;
-      } else {
-        console.error('Failed to fetch user data');
-      }
-    } catch (error) {
-      console.error('Error:', error);
+//preiau idul clientului pe baza usernameului
+async function getClientIdByUsername(username) {
+  try { //verific daca este un token in localstoarge
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token not found in local storage');
+      return;
     }
+
+    const headers = {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Authorization': `Bearer ${token}`,
+    };
+
+    const response = await axios.get(`http://user-service.localhost/person/getByUsername?username=${username}`, { headers });
+
+    if (response.status === 200) { //daca are succes
+      const user = response.data;
+      console.log('ID Client:', user.id);
+      return user.id; //returnez id
+    } else {
+      console.error('Failed to fetch user data');
+    }
+  } catch (error) {
+    console.error('Error:', error);
   }
+}
 
 const ClientComponent = () => {
-  const [devices, setDevices] = useState([]);
-  const [idClient, setIdClient] = useState(localStorage.getItem("iduser"));
-  const [selectedDeviceId, setSelectedDeviceId] = useState(null); // Adăugați starea pentru dispozitivul selectat
+  const [devices, setDevices] = useState([]); //lista device ale user
+  const [idClient, setIdClient] = useState(localStorage.getItem("iduser")); //idclient din localstorage
+  const [selectedDeviceId, setSelectedDeviceId] = useState(null); //id device selectat pt a vedea grafic
+  const [selectedDate, setSelectedDate] = useState(new Date()); //data selectata
 
   const handleLogout = () => {
     localStorage.removeItem('userId');
@@ -73,43 +52,41 @@ const ClientComponent = () => {
 
   const navigate = useNavigate();
 
+  //preiau dispozitivele utilizatorului
   useEffect(() => {
     const fetchClientId = async () => {
-      console.log("mergi sau ciau?");
-      // if (idClient===undefined) {
-        console.log("vrem id client");
-        const username = localStorage.getItem("userData");
-        const fetchedId = await getClientIdByUsername(username);
-        console.log("fetched id: ", fetchedId);
-        if (fetchedId) {
-          console.log("l-am gasit!!!!!!! : ", fetchedId);
-          setIdClient(fetchedId);
-          localStorage.setItem('iduser', fetchedId);
-        }
-      // }
+      console.log("vrem id client");
+      const username = localStorage.getItem("userData");
+      const fetchedId = await getClientIdByUsername(username);
+      console.log("fetched id: ", fetchedId);
+      if (fetchedId) {
+        console.log("l-am gasit!!!!!!! : ", fetchedId);
+        setIdClient(fetchedId);
+        localStorage.setItem('iduser', fetchedId);
+      }
     };
 
     fetchClientId();
   }, [idClient]);
 
+
+  //sa nu merg pe pagina de admin daca is client
   useEffect(() => {
     const role = localStorage.getItem("userRole");
     if (role === "ROLE_0") {
-      navigate('/')
+      navigate('/');
     }
-  },[])
+  }, []);
 
   useEffect(() => {
     if (idClient) {
       fetchDeviceData();
-      fetchMeasurement();
     }
   }, [idClient]);
 
   const fetchDeviceData = async () => {
     try {
       const token = localStorage.getItem('token');
-      console.log("token: ", token);
       if (!token) {
         console.log('Token not found in local storage');
         return;
@@ -120,8 +97,6 @@ const ClientComponent = () => {
         'Content-Type': 'application/json; charset=UTF-8',
         'Authorization': 'Bearer ' + token
       };
-      console.log("id client:", idClient);
-      console.log("tipul e:", typeof(idClient));
 
       const response = await axios.get(`http://device-service.localhost/device/devByUser?idClient=${idClient}`, { headers });
       setDevices(response.data);
@@ -130,6 +105,8 @@ const ClientComponent = () => {
     }
   };
 
+
+//verific daca measurement a depasit limita max pe ora si notificare
   const fetchMeasurement = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -144,26 +121,42 @@ const ClientComponent = () => {
         'Authorization': 'Bearer ' + token
       };
 
-      const response = await axios.get(`${HOST_MEASUREMENT}/getSum?idDevice=12`, { headers });
-      const currentSum = response.data;
-      console.log("suma este :", currentSum);
+      //aici selectez id-ul la care vreau sa vad graficul
+      console.log("selected device id: ", selectedDeviceId);
+      const response = await axios.get(`${HOST_MEASUREMENT}/getSum?idDevice=${selectedDeviceId}`, { headers });
+      const currentSum = response.data; //obtin consumul curent
+      console.log("suma este :", currentSum); //suma din ultima ora
 
-      const maxResponse = await axios.get(`${HOST_MEASUREMENT}/getMaxHourFromDevice?idDevice=12`, { headers });
-      const maxHourValue = maxResponse.data;
-
+      const maxResponse = await axios.get(`${HOST_MEASUREMENT}/getMaxHourFromDevice?idDevice=${selectedDeviceId}`, { headers });
+      const maxHourValue = maxResponse.data; //obtin limita maxima pe ora
+      let mesaj_notificare = "Notificare de proba";
       console.log("maxhour value", maxHourValue);
-      if (currentSum > maxHourValue) {
+      if (currentSum > maxHourValue) { //compar valorile si notific
+        mesaj_notificare = "S-a depasit maxHourConsumption pentru id_device=" + selectedDeviceId; //s a depasit pe ultima ora
         alert("S-a depasit maxHourConsumption!");
         toast.error("S-a depasit maxHourConsumption!");
       } else {
         alert("Suma este sub valoarea maxima pe ora");
         toast.info("Suma este sub valoarea maxima pe ora.");
       }
+
+      const response_mesaj = await axios.post('http://measurements-service.localhost/send', mesaj_notificare, { headers });
+
+      if (response_mesaj.status === 200) {
+        console.log('Message sent successfully');
+      } else {
+        console.error('Failed to send message');
+      }
     } catch (error) {
-      console.log("eroare");
       console.error("Error fetching measurement data:", error);
     }
   };
+
+  useEffect(() => {
+    if (selectedDeviceId) {
+      fetchMeasurement();
+    }
+  }, [selectedDeviceId]);
 
   // WebSocket logic
   const [isMsg, setIsMsg] = useState(false);
@@ -183,11 +176,11 @@ const ClientComponent = () => {
     setIsMsg(true);
   };
 
+
   return (
       <div className="App">
-        <Button onClick={handleLogout} variant="danger"
-                style={{marginLeft: "20px", "marginTop": "20px"}}>Logout</Button>
-        <h2><Button onClick={() => navigate(`/chat`)}>Chat</Button></h2>
+        <Button onClick={handleLogout} variant="danger" style={{ marginLeft: "20px", "marginTop": "20px" }}>Logout</Button>
+        <h2><Button onClick={() => navigate('/chat')}>Chat</Button></h2>
         <div className='user-table'>
           <h1>User Device Page</h1>
           <Table variant='success' striped bordered hover className="small-table">
@@ -216,15 +209,28 @@ const ClientComponent = () => {
           </Table>
         </div>
 
-        {selectedDeviceId &&
-            <MonitoringChart selectedDeviceId={selectedDeviceId}/>} {/* Aici se adaugă componenta MonitoringChart */}
+        {selectedDeviceId && (
+            <div>
+              <h3>Select a Day for Historical Data:</h3>
+              <DatePicker
+                  selected={selectedDate}
+                  onChange={(date) => setSelectedDate(date)}
+                  dateFormat="yyyy-MM-dd"
+              />
+
+              <MonitoringChart
+                  selectedDeviceId={selectedDeviceId}
+                  selectedDate={selectedDate}
+              />
+            </div>
+        )}
 
         <SockJsClient
             url={'http://measurements-service.localhost/ws-message'}
-            topics={topics}
+            topics={topics} //suboectele pt notificari
             onConnect={onConnected}
             onDisconnect={onDisconnect}
-            onMessage={msg => onMessageReceived(msg)}
+            onMessage={msg => onMessageReceived(msg)} //apelata cand primeste emsaj
             debug={false}
         />
 

@@ -10,12 +10,12 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    // Înregistrarea endpoint-ului WebSocket și definirea originilor permise pentru conexiuni
+    // inregistrarea endpoint-ului WebSocket și definirea originilor permise pentru conexiuni
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws").setAllowedOrigins("http://localhost:3000").withSockJS();
     }
-
+    //setez websocket si il folosesc pe fe
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         // Activarea unui broker de mesaje simplu pentru transmiterea mesajelor către anumite destinații (topic-uri)

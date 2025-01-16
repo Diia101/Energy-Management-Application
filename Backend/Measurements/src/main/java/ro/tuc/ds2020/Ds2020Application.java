@@ -19,14 +19,17 @@ import java.util.List;
 
 @SpringBootApplication
 public class Ds2020Application extends SpringBootServletInitializer {
+
+
+//folosesc aici ptc e destinata exclusiv mesajelor rabbitmq; strucutra corespunde direct cu formatu json
+    //si ptc nu exista dependente externe inutile sau confuzii cu alte clase din aplicatie
     static class SensorData {
         @JsonProperty("value")
-        private String value;
+        private String value; //valoarea citita din json
 
         @JsonProperty("id_device")
-        private String idDevice;
+        private String idDevice; //idul dispozitivului care a trimis datele
 
-        // getters and setters (or use Lombok annotations for brevity)
 
         @Override
         public String toString() {
@@ -52,6 +55,9 @@ public class Ds2020Application extends SpringBootServletInitializer {
             this.idDevice = idDevice;
         }
     }
+
+
+
     public static void main(String[] args) {
         SpringApplication.run(Ds2020Application.class, args);
     }
@@ -64,40 +70,37 @@ public class Ds2020Application extends SpringBootServletInitializer {
 
    private RestTemplate restTemplate;
 
-
-    @RabbitListener(queues = "demoqueue")
-    public void run(String msg1) throws Exception {
+//message broker
+    @RabbitListener(queues = "demoqueue") //ascult mesaje din coada
+    public void run(String msg1) throws Exception { //msg1 contine mesajul primit in format json
         System.out.println(" [*] Waiting for messages. To exit, press CTRL+C");
+        //convertesc mesajul json intr un obiect sensordata
         ObjectMapper objectMapper = new ObjectMapper();
         Thread.sleep(10000);
-        SensorData sensorData = objectMapper.readValue(msg1, SensorData.class);
-        System.out.println(sensorData);
+        SensorData sensorData = objectMapper.readValue(msg1, SensorData.class); //aici am obiectu json cu toate detaliile(id, data, etc)
+        System.out.println(sensorData); //afisare sensor in measurement-service docker console
 
 
-//        Measurement m = new Measurement();
-//        m.setTimest(new Date());
-//        m.setVal(Double.valueOf(String.valueOf(sensorData.getValue())));
-//        m.setIdDevice(Integer.parseInt(sensorData.getIdDevice()));
-        Measurement m = new Measurement(new Date(),
+       // convertesc si salvez in baza de date measurement datele senzorului
+        Measurement m = new Measurement(new Date(), //obiect measurement cu valori din sensordata
                 Double.valueOf(sensorData.getValue()),
                 Integer.parseInt(sensorData.getIdDevice()));
         measurementService.saveMeasurement(m);
 
-
-       // measurementService.saveMeasurement(m);
-
-
+        //iau toate measurements existente
         List<Measurement> measurements = measurementService.getAll();
         double sum = 0.0;
 
+        //verific limita maxima pt websocket
         ResponseEntity<Double> maxHourResponse = measurementService.getMaxHourFromDevice(sensorData.getIdDevice());
         System.out.println("maxH:" + maxHourResponse);
+        //daca limita a fost depasita trimit un mesaj websocket
         if (maxHourResponse.getStatusCode().is2xxSuccessful()) {
             Double maxHour = maxHourResponse.getBody();
             if (sum > maxHour) {
                 System.out.println("nu e bine");
                 webSocketTextController.sendMessage("S-a depasit bugetu");
-            } else {
+            } else { //daca e sub limita
                 System.out.println("Gj");
             }
         } else {

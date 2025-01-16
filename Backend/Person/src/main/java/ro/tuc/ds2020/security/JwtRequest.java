@@ -2,8 +2,9 @@ package ro.tuc.ds2020.security;
 
 import java.io.Serializable;
 
+//dto pt a transporta datele de autentificare de la client catre server
 public class JwtRequest implements Serializable {
-
+//identificator unic al clasei pentru procesul de serializare
     private static final long serialVersionUID = 5926468583005150707L;
 
     private String username;

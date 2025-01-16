@@ -11,21 +11,26 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
+//politici cors si verific daca originea cererii e permisa
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorsFilter implements Filter {
 
+    //lista origini permise cors
     private static final List<String> ALLOWED_ORIGINS = Arrays.asList("http://localhost:3000", "http://user-service.localhost");
 
+    //filtrul intercepteaza fiecare cerere si adaug antete cors
     @Override
+    //dofilter(cererea http care vine de la client, raspunsul http trimis inapoi,paseaza cererea mai departe)
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
             throws IOException, ServletException {
+        //convertirea codului si raspunsului
         HttpServletResponse response = (HttpServletResponse) res;
         HttpServletRequest request = (HttpServletRequest) req;
-
+        //obtinerea originii cererii
         String origin = request.getHeader("Origin");
 
-        // Dacă originul cererii este permis, se adaugă antetul Access-Control-Allow-Origin
+        // daca originul cererii este permis, se adauga antetul Access-Control-Allow-Origin
         if (ALLOWED_ORIGINS.contains(origin)) {
             response.setHeader("Access-Control-Allow-Origin", origin);
         }

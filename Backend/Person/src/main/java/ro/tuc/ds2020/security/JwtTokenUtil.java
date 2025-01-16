@@ -25,41 +25,45 @@ public class JwtTokenUtil implements Serializable {
 
     private static final long serialVersionUID = -2550185165626007488L;
 
-    public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60;
+    public static final long JWT_TOKEN_VALIDITY = 5 * 60 * 60; //durata token 5 ore
 
     @Value("${jwt.secret}")
     private String secret;
 
-    //retrieve username from jwt token
+    //obtine username din jwt token (subject e username)
     public String getUsernameFromToken(String token) {
-        return getClaimFromToken(token, Claims::getSubject);
+        return getClaimFromToken(token, Claims::getSubject); //claimfortoken pt a extrage subject din token
     }
 
-    //retrieve expiration date from jwt token
+    //obtin data expirarii unui jwt token
     public Date getExpirationDateFromToken(String token) {
-        return getClaimFromToken(token, Claims::getExpiration);
+        return getClaimFromToken(token, Claims::getExpiration); //calimfortoken pt a accesa expirarea
     }
 
+    //obtin informatii personalizate cu un resolver
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = getAllClaimsFromToken(token);
-        return claimsResolver.apply(claims);
+        final Claims claims = getAllClaimsFromToken(token); //decodific tokenul
+        return claimsResolver.apply(claims); //extrag o infromatie cum ar fi subject sau expiration
     }
-    //for retrieveing any information from token we will need the secret key
+
+    //parcurg tokenul si devodez informatiile folosind cheia secreta
     private Claims getAllClaimsFromToken(String token) {
+        //decodific toate infromatiile din token; validez semnatura cu cheia secreta si returnez infromatiile
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
     }
 
-    //check if the token has expired
+    //verific daca token a expirat
     private Boolean isTokenExpired(String token) {
-        final Date expiration = getExpirationDateFromToken(token);
-        return expiration.before(new Date());
+        final Date expiration = getExpirationDateFromToken(token); //obtin data de expirare
+        return expiration.before(new Date()); //compar cu data de acum
     }
 
-    //generate token for user
+    //generez token pt user
     public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
+        //pregatesc informatiile de utilizattor
+        Map<String, Object> claims = new HashMap<>(); //rolurile
 
-        // Convert authorities to a list of strings
+        // convertesc rolurile la o lista de stringuri
         List<String> roles = userDetails.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority)
@@ -67,22 +71,18 @@ public class JwtTokenUtil implements Serializable {
 
         claims.put("role", roles);
 
-        return doGenerateToken(claims, userDetails.getUsername());
+        return doGenerateToken(claims, userDetails.getUsername()); //apelez dogenerate pt a genera efectiv tokenul
     }
 
-    //while creating the token -
-    //1. Define  claims of the token, like Issuer, Expiration, Subject, and the ID
-    //2. Sign the JWT using the HS512 algorithm and secret key.
-    //3. According to JWS Compact Serialization(https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-3.1)
-    //   compaction of the JWT to a URL-safe string
+    //aduga info suplimentare
     private String doGenerateToken(Map<String, Object> claims, String subject) {
-
+//claims-roluri; subject-username; Issued-data generarii; expiration- expirarea; semnatura utilizand cheia
         return Jwts.builder().setClaims(claims).setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_TOKEN_VALIDITY * 1000))
-                .signWith(SignatureAlgorithm.HS512, secret).compact();
+                .signWith(SignatureAlgorithm.HS512, secret).compact(); //returnez token sub forma de string
     }
 
-    //validate token
+    //verific daca usernameul din token e la fel cu cel din baza de date si daca nu e expirat
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));

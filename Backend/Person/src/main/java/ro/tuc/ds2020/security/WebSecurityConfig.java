@@ -15,11 +15,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
 
+//configurez securitatea aplicatiei cu spring security
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    // Other @Autowired beans and methods remain the same
     @Autowired
     private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
@@ -28,14 +28,15 @@ public class WebSecurityConfig {
 
     @Autowired
     private JwtRequestFilter jwtRequestFilter;
-    // Expose AuthenticationManager as a Bean
 
 
+    //encoder pt criptarea si verificarea parolelor
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(); //cripteaza parolele inainte de a fi stocate in baza de date
     }
 
+    //regulile de securitate aplicate la fiecare cerere
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -56,31 +57,7 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http
-//                .csrf().disable()
-//                .authorizeRequests()
-//                .antMatchers("/person/login", "/authenticate").permitAll()
-//                //.antMatchers("/login").permitAll()
-//               // .antMatchers("/person/login").permitAll()
-//                .anyRequest().authenticated()
-//                .and()
-//                .exceptionHandling()
-//                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-//                .and()
-//                .sessionManagement()
-//                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-//
-//        http.addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
-//
-//        return http.build();
-//    }
-
-
-
-
-    // Your other beans like passwordEncoder() and authenticationManagerBean() would remain the same
-
+//utilizat pt autentificare; verifica credentialele utilizatorului
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();

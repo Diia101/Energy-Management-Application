@@ -12,12 +12,12 @@ public class WebConfig implements WebMvcConfigurer {
     preveni cererile neautorizate între diferite origini.
 
     .allowedOrigins("http://localhost:3000"): Aceasta specifică originile (adresele URL) care au permisiunea de a
-    accesa resursele serverului în cadrul anumitor rute (în acest caz, pentru ruta /ws
+    accesa resursele serverului în cadrul anumitor rut e (în acest caz, pentru ruta /ws
      */
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/ws/**")
-                .allowedOrigins("http://localhost:3000") // Replace with your frontend URL
+                .allowedOrigins("http://localhost:3000") 
                 .allowedMethods("GET", "POST", "PUT", "DELETE")
                 .allowedHeaders("*")
                 .allowCredentials(true)

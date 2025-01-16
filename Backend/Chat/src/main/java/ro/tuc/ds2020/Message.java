@@ -35,6 +35,7 @@ public class Message {
         this.content = content;
     }
 
+    //o reprezentare sub forma text a unui obiect message
     @Override
     public String toString() {
         return "Message{" +

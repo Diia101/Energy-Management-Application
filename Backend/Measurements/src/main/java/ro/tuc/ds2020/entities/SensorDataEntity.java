@@ -7,6 +7,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
+//aici trebuia salvat deviceid si maxhourvalue
 @Entity
 public class SensorDataEntity {
 

@@ -14,8 +14,7 @@ import java.util.Optional;
 public class PersonService {
     @Autowired
     IPersonRepository iPersonRepository;
-//    @Autowired
-//    IDeviceRepository ideviceRepository;
+
 
     @Autowired
     PasswordEncoder encoder;
@@ -24,15 +23,11 @@ public class PersonService {
         return iPersonRepository.findAll();
     }
 
-//    public Person savePerson(Person person){
-//
-//        return iPersonRepository.save(person);
-//    }
 
     public Person savePerson(Person person) {
-        // Criptăm parola înainte de a o salva
+        // criptez parola inainte de a o salva
         System.out.println(person);
-        person.setPassword(encoder.encode(person.getPassword()));
+        person.setPassword(encoder.encode(person.getPassword())); //criptare
         System.out.println(person.getPassword());
         return iPersonRepository.save(person);
     }
@@ -52,12 +47,12 @@ public class PersonService {
     public Person updatePerson(Integer id, String username, String password){
         Optional<Person> personOptional = iPersonRepository.findById(id);
         System.out.println("pers optional:"+ personOptional);
-        if (personOptional.isPresent()) {
+        if (personOptional.isPresent()) { //daca user e in baza de date
             Person oldPerson = personOptional.get();
             oldPerson.setUsername(username);
             // oldPerson.setPassword(password);
             System.out.println(oldPerson);
-            oldPerson.setPassword(encoder.encode(password));
+            oldPerson.setPassword(encoder.encode(password)); //criptez inainte de salvare
             System.out.println(oldPerson.getPassword());
             return iPersonRepository.save(oldPerson);
         }
@@ -66,11 +61,12 @@ public class PersonService {
 
 
     public Person getByUsernameAndPassword(String username, String password) {
-        if (iPersonRepository.getByUsernameAndPassword(username,password) != null){
+        if (iPersonRepository.getByUsernameAndPassword(username,password) != null){ //gasesc pe baza username si pass
             return iPersonRepository.getByUsernameAndPassword(username,password);
         }
         return null;
     }
+    //gaseste user pe baza username
     public Person getByUsername(String username) {
         System.out.println("username e: "+ username);
         if (iPersonRepository.getByUsername(username) != null){

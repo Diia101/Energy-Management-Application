@@ -12,12 +12,16 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
+        //activez un broker de mesaje care gestioneaza mesajele clientilor
         config.enableSimpleBroker("/topic");
+        //specifica prefixul pentru destinatiile cererilor trimise de client catre server
         config.setApplicationDestinationPrefixes("/app");
     }
 
+    //stabilesc conexiunea websocket cu serverul
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws-message").setAllowedOriginPatterns("*").withSockJS();

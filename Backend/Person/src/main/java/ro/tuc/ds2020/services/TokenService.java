@@ -13,20 +13,21 @@ import java.util.Map;
 @Service
 public class TokenService {
 
-    private final String SECRET_KEY = "your_secret_key"; // Use a strong secret key
-    private final long EXPIRATION_TIME = 1000 * 60 * 60; // 1 hour in milliseconds
+    private final String SECRET_KEY = "MjMxZDg5YWFjMTY1OTZlY2UwMWMxM2IzNzRiNjljNzQ3MDM4YzcxMzI3ZTJhMzIwZjUyNzdmZmE0ZDczNzI5Mw==\n"; // cheie secreta pt semnarea token
+    private final long EXPIRATION_TIME = 1000 * 60 * 60; // timpul de expirare la o ora
 
     public String generateToken(Person person) {
+       //stocam info despre user
         Map<String, Object> claims = new HashMap<>();
-        claims.put("role", person.getRole()); // Assuming you have a method to get the role
-        claims.put("id", person.getId()); // Assuming you have a method to get the ID
-
+        claims.put("role", person.getRole()); //
+        claims.put("id", person.getId()); //
+        //construim token
         return Jwts.builder()
-                .setClaims(claims) // Set the claims
-                .setSubject(person.getUsername()) // The username as the subject
-                .setIssuedAt(new Date(System.currentTimeMillis())) // Issue date
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // Expiration date
+                .setClaims(claims) // informatii aditionale
+                .setSubject(person.getUsername()) // username
+                .setIssuedAt(new Date(System.currentTimeMillis())) // data emiterii
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)) // data expirarii
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY) // Sign with the secret key
-                .compact(); // Build the token
+                .compact(); //returnarea tokenului
     }
 }

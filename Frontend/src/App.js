@@ -6,6 +6,7 @@ import {
   Navigate 
 } from "react-router-dom";
 import { useState, useEffect } from 'react';
+import { StompSessionProvider, useSubscription } from "react-stomp-hooks";
 
 import Home from "./Home";
 import Admin from "./components/Admin";
@@ -26,9 +27,13 @@ import TypingIndicator from './components/TypingIndicator';
 function App() {
   return (
     <div>
+      <StompSessionProvider
+          url="http://chat-service.localhost/ws"
+          debug={(str) => console.log(str)}
+      >
       <Router>
         <Routes>
-          <Route path="/" element={<Login />} /> {/* Pagina de autentificare nu este protejată */}
+          <Route path="/" element={<Login />} />
           <Route path="/client" element={<PrivateRoute element={<Client />} />} />
           <Route path="/admin" element={<PrivateRoute element={<Admin />} />} />
           <Route path="/insertUser"  element={<InsertUser />} />
@@ -37,10 +42,10 @@ function App() {
           <Route path="/editDevice" element={<PrivateRoute element={<EditDevice />} />} />
           <Route path="/insertDevice" element={<PrivateRoute element={<InsertDevice />} />} />
           <Route path="/chat" element={<ChatPage />} />
-          
+
         </Routes>
       </Router>
-   
+      </StompSessionProvider>
     </div>
   );
   // return<>

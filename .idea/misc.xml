@@ -10,6 +10,10 @@
         <option value="$PROJECT_DIR$/Backend1/Measurements/pom.xml" />
         <option value="$PROJECT_DIR$/ds-2020-3/pom.xml" />
         <option value="$PROJECT_DIR$/Backend1/Chat/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend/Chat/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend/Device/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend/Measurements/pom.xml" />
+        <option value="$PROJECT_DIR$/Backend/Person/pom.xml" />
       </list>
     </option>
     <option name="ignoredFiles">
@@ -18,7 +22,7 @@
       </set>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_23" default="true" project-jdk-name="openjdk-23" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" default="true" project-jdk-name="17" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>

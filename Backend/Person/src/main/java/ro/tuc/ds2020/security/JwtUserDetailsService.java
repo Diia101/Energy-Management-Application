@@ -16,52 +16,28 @@ import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+//gestionez autentificarea utilizatorilor;extrag detaliile userilor din baza de date si le prelucrez
 @Service
 public class JwtUserDetailsService implements UserDetailsService {
     @Autowired
-    PersonService personService;
+    PersonService personService; //ppt a accesa user din baza de date
 
     @Autowired
-    private PasswordEncoder passwordEncoder;  // Injectează PasswordEncoder pentru a compara parolele
+    private PasswordEncoder passwordEncoder;//encoderul utlizat pt compararea parolelor criptate din baza de date cu cele ale users
 
+    //incarc detalii user din baza de date pe baza username
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+       //iau user din baza de date
         Person person = personService.getByUsername(username);
-
+        //verific daca exista
         if (person == null) {
             throw new UsernameNotFoundException("User not found with username: " + username);
         }
 
-        // Verifică dacă parola trimisă de utilizator se potrivește cu cea criptată din baza de date
-//        if (!passwordEncoder.matches(person.getPassword(), person.getPassword())) {
-//            throw new UsernameNotFoundException("Invalid credentials");
-//        }
 
+        //lista de roluri pt user
         List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + person.getRole()));
-        return new User(person.getUsername(), person.getPassword(), authorities);
+        return new User(person.getUsername(), person.getPassword(), authorities); //creez obiect user
     }
-
-
-    // @Override
-//    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//        System.out.println("Căutăm utilizatorul: " + username);  // Mesaj de diagnosticare
-//
-//        Person person = personService.getByUsername(username);
-//
-//        if (person == null) {
-//            System.out.println("Utilizatorul nu a fost găsit: " + username);  // Dacă nu găsim utilizatorul
-//            throw new UsernameNotFoundException("User not found with username: " + username);
-//        } else {
-//            System.out.println("Utilizatorul găsit: " + username + " cu parola: " + person.getPassword());  // Dacă găsim utilizatorul
-//
-//            // Verificăm dacă parola introdusă corespunde cu cea criptată stocată în baza de date
-//            if (!passwordEncoder.matches(person.getPassword(), person.getPassword())) {
-//                System.out.println("Parola nu se potrivește pentru utilizatorul: " + username);
-//                throw new UsernameNotFoundException("Invalid credentials");
-//            }
-//
-//            List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + person.getRole()));
-//            return new User(person.getUsername(), person.getPassword(), authorities);
-//        }
-//    }
 }

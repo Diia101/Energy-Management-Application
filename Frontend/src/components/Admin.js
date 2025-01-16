@@ -12,9 +12,10 @@ const Admin = () => {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  const [userData, setUserData] = useState([]);
-  const[deviceData, setDeviceData] = useState([]);
-  const navigate = useNavigate();
+  const [userData, setUserData] = useState([]); //retin lista utilizatorilor preluati de la server
+  const[deviceData, setDeviceData] = useState([]); //retin lista deviceurilor
+  const navigate = useNavigate(); //navighez intre rutele definite
+  //logout
   const handleLogout = () => {
     localStorage.removeItem('userData');
     localStorage.removeItem('token');
@@ -31,6 +32,7 @@ const Admin = () => {
     }
     var obj = localStorage.getItem('token');
 
+    //sa nu pot naviga pe pagina de client daca is admin
     const role = localStorage.getItem("userRole");
     if (role === "ROLE_1") {
       navigate('/')
@@ -38,8 +40,8 @@ const Admin = () => {
 
     if (!obj) {
       console.log('Token not found in local storage');
-      
     }
+
     let headers2 = {
       "headers": {
         'Accept': 'application/json',
@@ -47,11 +49,11 @@ const Admin = () => {
         'Authorization': 'Bearer ' + obj
       }
     };
-
-    axios.get(`${HOST_PERSON}/all`,headers2)
+    //preiau utilizatorii
+    axios.get(`${HOST_PERSON}/all`,headers2) //fac o cerere get catre endpoint pt users /all
       .then((response) => {
-        if (isRendered) {
-          setUserData(response.data);
+        if (isRendered) { //daca reuseste
+          setUserData(response.data); //salvam datele in userdata
           toast.success("User data fetched successfully!");
         }
       })
@@ -71,7 +73,8 @@ const Admin = () => {
   
     useEffect(() => {
       let isRendered = true;
-  
+
+      //preiau deviceurile
       axios.get(`${HOST_DEVICE}/all`)
         .then((response) => {
           if (isRendered) {
@@ -92,10 +95,12 @@ const Admin = () => {
   
    
   };
+
+
   function mapRole(role) {
     return role === 0 ? "ADMIN" : "CLIENT";
   }
-
+//inserarea unui utilizator
   const handleInsert = () => {
     let isRendered = true;
     var obj = localStorage.getItem('token');
@@ -111,11 +116,11 @@ const Admin = () => {
       }
     };
 
-
+//trimit cerere post pt a salva un user
     axios.post(`${HOST_PERSON}/save`,headers2)
       .then((response) => {
         if (isRendered) {
-          setUserData(response.data);
+          setUserData(response.data); //actualizez
           toast.success("User saved successfully!");
         }
       })
@@ -126,6 +131,7 @@ const Admin = () => {
       });
   };
 
+  //inserez dispozitiv
   const handleInsert1 = () => {
     let isRendered = true;
     const token = localStorage.getItem('token');
@@ -155,6 +161,7 @@ const Admin = () => {
       });
   };
 
+  //editare user
   const editUser = (user) => {
     navigate('/EditUser');
     const id = user.id;
@@ -167,7 +174,7 @@ const Admin = () => {
       password: password,
     })
       .then((response) => {
-        setUserData(response.data);
+        setUserData(response.data); //actualizez
         toast.success("User updated successfully!");
       })
       .catch((error) => {
@@ -220,6 +227,7 @@ const Admin = () => {
       'Content-Type': 'application/json; charset=UTF-8',
       'Authorization': 'Bearer ' + token
     };
+    //sterg user si dispozitivele lui
     axios.delete(`${HOST_PERSON}/delete?id=${id}`, {headers})
       .then((response) => {
           toast.success("User deleted successfully!");
@@ -238,6 +246,7 @@ const Admin = () => {
       });
   };
 
+//sterg dispozitiv
   const handleDeleteDevice = (id) => {
     let isRendered = true;
     axios.delete(`${HOST_DEVICE}/delete?id=${id}`)

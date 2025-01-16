@@ -1,7 +1,6 @@
 package ro.tuc.ds2020.entities;
 
 import lombok.*;
-
 import javax.persistence.*;
 import java.util.Date;
 
@@ -27,14 +26,6 @@ public class Measurement {
 
     @Column(name = "iddevice", nullable = false)
     private int idDevice;
-
-//    public void setIdDevice(int idDevice) {
-//        this.idDevice = idDevice;
-//    }
-//
-//    public int getIdDevice() {
-//        return idDevice;
-//    }
 
     public Measurement(Date timest, Double val, int idDevice)
     {

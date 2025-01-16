@@ -10,11 +10,13 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
+//daca o cerere nereușită încearcă să acceseze resurse protejate fără a fi autenticată corespunzător
+//daca nu s autorizata am eroare
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Serializable {
-
-    private static final long serialVersionUID = -7858869558953243875L;
-
+//identificare unică pentru versiunea serializabilă a clasei
+   private static final long serialVersionUID = -7858869558953243875L;
+//o cerere nereușită încearcă să acceseze o resursă protejată
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) throws IOException {

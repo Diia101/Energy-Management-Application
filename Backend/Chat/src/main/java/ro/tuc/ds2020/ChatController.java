@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 @Controller
 public class ChatController {
     @Autowired
-    private SimpMessagingTemplate messagingTemplate;
-
+    private SimpMessagingTemplate messagingTemplate; //metode pt trimitere mesaje la clienti conectati la websocket
+//gestionez mesaje primite de la clienti
     @MessageMapping("/chat")
     public void sendMessage(Message message) {
         System.out.println(message);
-        // Metoda care primește un mesaj și îl trimite către un anumit topic pentru broadcast către clienți
+        // metoda care primeste un mesaj si il trimite catre un anumit topic pentru clienți
         messagingTemplate.convertAndSend("/topic/messages", message);
     }
 }
