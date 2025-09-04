@@ -12,7 +12,7 @@ Chat Management Microservice: Enables asynchronous communication between users a
 Security is based on session/cookie-based authentication for controlled access and uses JSON Web Token (JWT) for API security.
 
 
-:Dependencies and Execution
+Dependencies and Execution:
 
 To run the application, the following are required:
 Dependencies: Java 17, Node.js 16, and PostgreSQL for the database.
