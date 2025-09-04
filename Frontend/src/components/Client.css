@@ -1,0 +1,41 @@
+/* Add this CSS in a separate .css or .scss file and import it into your component */
+
+/* Style for the table */
+.device-table {
+    width: 100%;
+    border: 1px solid #ccc;
+    border-collapse: collapse;
+  }
+  
+  .device-table th {
+    background-color: #f2f2f2;
+    text-align: left;
+    padding: 8px;
+  }
+  
+  .device-table td, .device-table th {
+    border: 1px solid #ddd;
+    padding: 8px;
+  }
+  
+  .device-table tbody tr:nth-child(even) {
+    background-color: #f2f2f2;
+  }
+  
+  .device-table tbody tr:hover {
+    background-color: #ddd;
+  }
+  
+  /* Style for buttons or other elements inside the table, if needed */
+  .device-table .button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  
+  .device-table .button:hover {
+    background-color: #0056b3;
+  }
+  

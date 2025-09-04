@@ -1,0 +1,54 @@
+package ro.tuc.ds2020.security;
+
+import java.io.Serializable;
+
+//este modelul folosit pentru autentificare
+//conține username,password si role, pe care frontend-ul le trimite când cineva se loghează
+//dto pt a transporta datele de autentificare de la frontend catre backendpublic class JwtRequest implements Serializable {
+//identificator unic al clasei pentru procesul de serializare
+    private static final long serialVersionUID = 5926468583005150707L;
+
+    private String username;
+    private String password;
+    private int role;
+
+    //need default constructor for JSON Parsing
+    public JwtRequest()
+    {
+
+    }
+
+    public JwtRequest(String username, String password) {
+        this.setUsername(username);
+        this.setPassword(password);
+    }
+    public JwtRequest(String username, String password, int role) {
+        this.setUsername(username);
+        this.setPassword(password);
+        this.setRole(role);
+    }
+
+    public String getUsername() {
+        return this.username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public int getRole() {
+        return role;
+    }
+
+    public void setRole(int role) {
+        this.role = role;
+    }
+
+    public String getPassword() {
+        return this.password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+}
