@@ -15,8 +15,9 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.client.RestTemplate;
 
-//configurez securitatea aplicatiei cu spring security
-@Configuration
+//stabileste ce endpoint-uri sunt protejate și care sunt publice
+//configurez autentificarea folosind JWT
+//criptez parolele cu bcryptpasswordencoder@Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 

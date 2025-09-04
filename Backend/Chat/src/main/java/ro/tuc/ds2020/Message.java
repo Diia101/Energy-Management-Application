@@ -39,7 +39,7 @@ public class Message {
     @Override
     public String toString() {
         return "Message{" +
-                "sender='" + sender + '\'' +
+                "sender='" + sender + '\'' +   //'\' pt  apostrof: 'diia'
                 ", receiver='" + receiver + '\'' +
                 ", content='" + content + '\'' +
                 '}';

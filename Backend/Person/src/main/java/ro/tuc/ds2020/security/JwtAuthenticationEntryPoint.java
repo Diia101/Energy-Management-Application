@@ -10,8 +10,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
-//daca o cerere nereușită încearcă să acceseze resurse protejate fără a fi autenticată corespunzător
-//daca nu s autorizata am eroare
+//dacă cineva încearcă să acceseze un endpoint protejat fără să fie autentificat, returnează un mesaj de eroare (Unauthorized - 401).
+// se ocupa de erorile de autentificare
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint, Serializable {
 //identificare unică pentru versiunea serializabilă a clasei

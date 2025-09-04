@@ -19,6 +19,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
+//creez, validez și extrag informații din token-ul JWT
+//token-ul JWT este folosit pentru a menține sesiunea utilizatorului fără a-l loga de fiecare dată
 @Component
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class JwtTokenUtil implements Serializable {
@@ -30,23 +32,23 @@ public class JwtTokenUtil implements Serializable {
     @Value("${jwt.secret}")
     private String secret;
 
-    //obtine username din jwt token (subject e username)
+    //obtine username din jwt token (subject e username) cu claims
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject); //claimfortoken pt a extrage subject din token
     }
 
-    //obtin data expirarii unui jwt token
+    //extrag username din token fara claim; il iau direct
     public Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration); //calimfortoken pt a accesa expirarea
     }
 
-    //obtin informatii personalizate cu un resolver
+    //obtin o informatie specifica din token
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token); //decodific tokenul
         return claimsResolver.apply(claims); //extrag o infromatie cum ar fi subject sau expiration
     }
 
-    //parcurg tokenul si devodez informatiile folosind cheia secreta
+    //parcurg tokenul si decodez(descompun) tokenul si obtin toate datele stocate in el
     private Claims getAllClaimsFromToken(String token) {
         //decodific toate infromatiile din token; validez semnatura cu cheia secreta si returnez infromatiile
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();

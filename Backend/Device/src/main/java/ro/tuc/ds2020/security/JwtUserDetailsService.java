@@ -16,10 +16,11 @@ import java.util.Collections;
 import java.util.List;
 
 //gestionez autentificarea utilizatorilor;extrag detaliile userilor din baza de date si le prelucrez
+//caută utilizatorul în baza de date pe baza username-ului
+//este folosit de Spring Security pentru autentificare
 @Service
 public class JwtUserDetailsService implements UserDetailsService {
-//    @Autowired
-//    PersonService personService;
+
 
     @Autowired
     private PasswordEncoder passwordEncoder;//encoderul utlizat pt compararea parolelor criptate din baza de date cu cele ale users
@@ -33,7 +34,6 @@ public class JwtUserDetailsService implements UserDetailsService {
         if (username == null || username.isEmpty()) {
             throw new UsernameNotFoundException("Username not found in token"); //
         }
-
 
         //lista de roluri pt user
         List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));

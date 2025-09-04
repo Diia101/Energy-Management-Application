@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+//creez, validez și extrag informații din token-ul JWT
+//token-ul JWT este folosit pentru a menține sesiunea utilizatorului fără a-l loga de fiecare dată
 @Component
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class JwtTokenUtil implements Serializable {
@@ -28,12 +30,13 @@ public class JwtTokenUtil implements Serializable {
     @Value("${jwt.secret}")
     private String secret;
 
-    //obtine username din jwt token (subject e username)
+    //obtine username din jwt token (subject e username) cu claims
     public String getUsernameFromToken(String token) {
-        System.out.println("getUsernameFromToken"); //
+        System.out.println("getUsernameFromToken");
         return getClaimFromToken(token, Claims::getSubject);
     }
 
+    //extrag username din token fara claim; il iau direct
     public String getUserNameFromJwtToken(String token) {
         System.out.println("getUserNameFromJwtToken");
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody().getSubject();
@@ -45,19 +48,13 @@ public class JwtTokenUtil implements Serializable {
     }
 
 
-    // obtin ID-ul utilizatorului din token (daca este salvat în token)
-    public Integer getIdFromToken(String token) {
-        Claims claims = getAllClaimsFromToken(token);
-        return claims.get("id", Integer.class); // Assumes "id" is stored in claims
-    }
-
-    //obtin informatii personalizate cu un resolver
+    //obtin o informatie specifica din token
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
     }
 
-    //parcurg tokenul si devodez informatiile folosind cheia secreta
+    //parcurg tokenul si decodez(descompun) tokenul si obtin toate datele stocate in el
     private Claims getAllClaimsFromToken(String token) {
         //decodific toate infromatiile din token; validez semnatura cu cheia secreta si returnez infromatiile
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
@@ -97,8 +94,4 @@ public class JwtTokenUtil implements Serializable {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    // validare  a token-ului fara UserDetails
-    public Boolean validateToken(String token) {
-        return !isTokenExpired(token);
-    }
 }

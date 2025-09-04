@@ -43,7 +43,7 @@ const Login = () => {
               id: decoded.id,
             };
 
-            // Salvarea în localStorage
+            // salvarea în localStorage
             localStorage.setItem("userRole", user.role);
             localStorage.setItem("userData", user.username);
             localStorage.setItem("token", token);

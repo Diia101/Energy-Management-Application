@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 
-//politici cors si verific daca originea cererii e permisa
+//permite accesul din frontend catre backend evitand probleme de CORS
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE)
 public class CorsFilter implements Filter {
@@ -22,6 +22,7 @@ public class CorsFilter implements Filter {
     //filtrul intercepteaza fiecare cerere si adaug antete cors
     @Override
     //dofilter(cererea http care vine de la client, raspunsul http trimis inapoi,paseaza cererea mai departe)
+    //această metodă se execută pentru fiecare cerere HTTP și decide dacă permite sau nu accesul
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
             throws IOException, ServletException {
         //convertirea codului si raspunsului

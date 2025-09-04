@@ -1,183 +1,248 @@
-import React, { useState, useEffect, useRef } from 'react';
-import SockJsClient from 'react-stomp';
-import { useStompClient } from 'react-stomp-hooks';
-import '../App.css';
-import { Button } from 'react-bootstrap';
-import { Form } from 'react-bootstrap';
+import React, { useState, useEffect } from "react";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
+import { v4 as uuidv4 } from "uuid";
+import "../App.css";
+import { Button, Form } from "react-bootstrap";
 
 const Chat = () => {
-    const [messages, setMessages] = useState([]); //lista mesajelor din chat
-    const [messageInput, setMessageInput] = useState(''); //textuk introdus de user in campu de mesaje
-    const [username, setUsername] = useState(''); //numele userului curent
-    const [topics, setTopics] = useState([]); //topics pt abonarea la websocket
-    const [isSeen, setIsSeen] = useState(false); //daca a fost vazut mesajul
-    const [isTyping, setIsTyping] = useState(false); //daca scrie
+    const [messages, setMessages] = useState([]);
+    const [messageInput, setMessageInput] = useState("");
+    const [username, setUsername] = useState(localStorage.getItem("userData") || ""); // setez username din localStorage si daca nu exista setez string gol
+    const [stompClient, setStompClient] = useState(null); //websocket
+    const [isTyping, setIsTyping] = useState(false);
 
-    //obtin acces la o instanta a clientului websocket configurat anterior
-    const chatClient = useStompClient();
 
-//trimit mesaju; notific in timp real clientii conectati la socket cand focusez
-    const handleFocus = () => {
-        if (chatClient) { //daca instanta chatClient e disponibila si conectata
-            chatClient.publish({
-                destination: '/topic/seen', // specific topicul websocketului
-                //mesajul include numele utilizatorului care da seen si seenul
-                body: JSON.stringify({ sender: username, recipient: '/topic/seen' }),
+    useEffect(() => {
+        console.log("Inițializare WebSocket...");
+
+        //creez o conexiune websocket catre backend
+        const socket = new SockJS("http://chat-service.localhost/ws");
+        //clientul stomp care gestioneaza websocketul
+        const client = new Client({
+            webSocketFactory: () => socket, //folosesc socketjs pt websocket
+            reconnectDelay: 5000, //daca se intrerupe conexiunea se reconecteaza dupa 5 sec
+            debug: (str) => console.log("🔍 [STOMP Debug]:", str),
+            onConnect: () => {
+                console.log("✅ [STOMP] Conectat la WebSocket!");
+                setupSubscriptions(client); //ma abonez la mesaje
+            },
+            onDisconnect: () => {
+                console.warn("🔴 [STOMP] WebSocket deconectat! Reîncerc...");
+                client.activate(); // reîncercare automată a conectării
+            },
+            onStompError: (frame) => console.error("❌ [STOMP] Eroare WebSocket: ", frame),
+        });
+        //pornesc conexiunea websocket
+        client.activate();
+        setStompClient(client); //salvez clientul stomp in useState
+
+        //cand chat e inchisa sau se incarca
+        return () => {
+            console.log("🧹 Curățare conexiune WebSocket...");
+            client.deactivate(); //inchid websocketul
+        };
+    }, []);
+
+//abonarea la evenimentele websocket
+    const setupSubscriptions = (client) => {
+        console.log("📡 Abonare la topicuri pentru:", username);
+        //definesc cele 3 topicuri pt websocket
+        const userQueue = `/user/${username}/queue/messages`; //mesajele private
+        const seenQueue = `/user/${username}/queue/seen`;
+        const typingQueue = `/user/${username}/queue/typing`;
+
+        //se face abonarea la mesaje
+        client.subscribe(userQueue, (message) => {
+            //message.body contine datele trimise de backend (chatcontroller)
+            console.log("🔍 [WebSocket] Mesaj primit de la backend:", message.body);
+            handleMessage(message);
+        });
+        //abonarea la seen
+        client.subscribe(seenQueue, (message) => {
+            console.log("👀 [WebSocket] Notificare SEEN primită:", message.body);
+            handleSeenMessage(message);
+        });
+        //abonarea la typing
+        client.subscribe(typingQueue, (message) => {
+            console.log("⌨️ [WebSocket] Notificare TYPING primită:", message.body);
+            handleTypingMessage(message);
+        });
+
+        console.log(`✅ Subscris la: ${userQueue}, ${seenQueue} și ${typingQueue}`);
+    };
+
+//trimit mesaje prin ws catre backend
+    const handleSendMessage = () => {
+        //obtin userul cu care vb; trim()- elimina spatiile din nume
+        const receiver = localStorage.getItem("chatUserName")?.trim() || "diia";
+
+        //daca mesajul e gol iesim din functie
+        if (!messageInput.trim()) return;
+
+        //construiesc obiectul de mesaj
+        const message = {
+            messageId: uuidv4(),
+            sender: username, //utilizatorul curent
+            receiver,
+            content: messageInput.trim(), //continutul mesajului curatat de spatii goale
+            timestamp: new Date().toISOString(),
+        };
+
+        console.log("📤 Trimit mesaj:", message);
+
+        //trimit mesajul catre server prin ws
+        stompClient.publish({
+            destination: "/app/chatPrivate", //spun backendului ca e un mesaj privat
+            body: JSON.stringify(message), //convertesc mesajul intr un string deoarece ws accepta doar text
+        });
+
+        //adaug mesajul in interfata
+        setMessages((prev) => [...prev, { ...message, self: true }]);
+        //sterg mesajul din input dupa ce a fost trimis
+        setMessageInput("");
+    };
+
+
+    //mesajele primite
+    const handleMessage = (message) => {
+        //message.body contine mesajul sub forma de text json trimis de backend
+        const msg = JSON.parse(message.body); //convertesc intr un obiect javascript
+        console.log("📩 [Frontend] Mesaj primit prin WebSocket:", msg);
+
+        if (!msg.receiver) {
+            console.warn("⚠️ Mesaj fără receiver, îl setez manual:", username);
+            msg.receiver = username;
+        }
+
+        // Filtrez mesajele doar pentru conversația curentă
+        // utilizatorul cu care vb, daca nu exista setam diia implicit
+        const activeChatUser = localStorage.getItem("chatUserName") || "diia";
+        //verific daca mesajul apartine conversatiei curente
+        if (
+            (msg.sender === username && msg.receiver === activeChatUser) || // mesaj trimis către userul activ
+            (msg.sender === activeChatUser && msg.receiver === username) // mesaj primit de la userul activ
+        ) {
+            console.log(`💬 [Frontend] Adaug mesaj în chat: ${msg.sender} -> ${msg.receiver}: ${msg.content}`);
+            setMessages((prev) => [...prev, msg]); //adaug noul mesaj la final
+        } else {
+            console.log("❌ [Frontend] Mesaj ignorat - nu este din conversația curentă.");
+        }
+    };
+
+    //trimit seen
+    const sendSeenMessage = () => {
+        //daca e initializat si activ
+        if (stompClient) {
+            //userul cu care vb
+            const sender = localStorage.getItem("chatUserName")?.trim() || "diia";
+            //construiesc un mesaj json care indica ca msj a fost citit
+            const seenMessage = { sender: username, receiver: sender, content: "SEEN" };
+
+            console.log("📤 [Seen] Trimit notificare de seen:", seenMessage);
+
+            //trimit mesajul de seen catre backend prin websocket
+            stompClient.publish({
+                destination: "/app/seen",
+                body: JSON.stringify(seenMessage), //convertesc ca sa fie compatibil cu ws
+            });
+        }
+    };
+//primesc seen
+    const handleSeenMessage = (message) => {
+        const seenMsg = JSON.parse(message.body);
+        console.log("👀 [Frontend] Mesaj de seen primit:", seenMsg);
+
+        setMessages((prevMessages) => {
+            // gasesc ultimul mesaj primit de la sender
+            let lastIndex = -1; //incepem de la ultimul mesaj
+            for (let i = prevMessages.length - 1; i >= 0; i--) {
+                if (prevMessages[i].receiver === seenMsg.sender) { //daca destinatarul a dat seen
+                    lastIndex = i; //salvez indexul mesajului
+                    break;
+                }
+            }
+            //actualizam lista de mesaje
+            return prevMessages.map((msg, index) =>
+                //daca indexul e egal cu ultimu mesaj primit de la sender adaug bifa la utlimu msj
+                index === lastIndex ? { ...msg, seen: true } : { ...msg, seen: false }
+            );
+        });
+    };
+
+    //trimit notificare de typing prin ws catre backend
+    const sendTypingNotification = () => {
+        //daca ws e activ
+        if (stompClient) {
+            const receiver = localStorage.getItem("chatUserName")?.trim() || "diia";
+            //creez obiectul mesajului
+            const typingMessage = { sender: username, receiver, content: "TYPING" };
+
+            console.log("⌨️ [Typing] Trimit notificare de typing:", typingMessage);
+
+            //trimit mesajul prin ws catre backend
+            stompClient.publish({
+                destination: "/app/typing",
+                body: JSON.stringify(typingMessage), //convertesc ca sa poate fi trimis prin ws
             });
         }
     };
 
+    //primesc typing
+    const handleTypingMessage = (message) => {
+        const typingMsg = JSON.parse(message.body); //avem sender si reciever
+        console.log("⌨️ [Frontend] Notificare de typing primită:", typingMsg);
 
-    //clientRef este un obiect de referință (Ref)
-    //referinta catre websocket pt trimiterea mesajelor
-    const clientRef = useRef(null);
-    
+        // filtrez typing doar pentru userul activ din conversație
+        const activeChatUser = localStorage.getItem("chatUserName") || "diia";
 
-    useEffect(() => {
-         // utilzizez useEffect pentru a seta username-ul când componenta este randata
-        setUsername(localStorage.getItem('userData'));
-
-         // fct returnata va fi apelată când componenta este dezactivată, inchidem conexiunea
-        return () => {
-            if (clientRef.current && clientRef.current.deactivate) {
-                clientRef.current.deactivate();
-            }
-        };
-    }, []);
-
-     // functie pt a actualiza mesajul campului de text
-    const handleMessageChange = (e) => {
-        setMessageInput(e.target.value);
-    };
-
-      // fct pentru a trimite mesajul
-    const handleSendMessage = () => {
-        const message = { //obiect message care contine
-            sender: username, //utilizator curent
-            receiver: 'admin', //destianatarul mesajului implicit admin
-            content: messageInput, //textu mesajului
-        };
-
-        //sendMessage este o metodă specifică a acestui client WebSocket (SockJsClient) 
-        //care este utilizată pentru a trimite mesaje către serverul WebSocket
-        if (clientRef.current && clientRef.current.sendMessage) {
-            clientRef.current.sendMessage('/app/chat', JSON.stringify(message)); //trimit mesajul catre websocket pe sub /app/chat
-        }
-
-        //golim mesajul dupa ce l-am trimis
-        setMessageInput('');
-    };
-
-    // cand primim mesaj, pe langa cele pe care le avem deja vrem sa le pastram
-    //de asta punem cu .. inainte, asta inseamna ca la array-ul de mesaje deja existent, mai adaugam pe cel pe care l-am primit
-    const onMessageReceived = (msg) => {
-        console.log("msg: ", msg); //msg e mesajul primit de la server prin websocket
-//aici il receptionez
-        if (msg.recipient === '/topic/seen') {
-            console.log('topic seen');
-            if (msg.sender !== username) {
-                setIsSeen(true);
-                resetSeenStatus();
-            }
-        } else { //daca e pe alt topic, cel clasic de mesaje
-            setMessages([...messages, msg]); //adaug mesajul in lista de mesaje(... pastrez mesajele vechi)
-            console.log('username', username);
-
-            resetSeenStatus();
+        //verific daca mesajul de typing vine de la userul cu care vb
+        if (typingMsg.sender === activeChatUser && typingMsg.receiver === username) {
+            setIsTyping(true);
+            setTimeout(() => setIsTyping(false), 2000); // ascund "Typing..." dupa 2 secunde
+        } else {
+            console.log("❌ [Frontend] Notificare de typing ignorată - nu este din conversația curentă.");
         }
     };
 
-    //cand apas de campul de text(sa scriu mesaj)
-    const handleChange = (event) => {
-        handleMessageChange(event); //actualizez textul
-        setIsTyping(true);          //activez indicatorul typing
-        handleTyping();             //resetez inidcatorul dupa 2 secunde
-      };
 
-
-      const debounce = (func, delay) => {
-        let inDebounce;
-        return function() {
-          const context = this;
-          const args = arguments;
-          clearTimeout(inDebounce);
-          inDebounce = setTimeout(() => func.apply(context, args), delay);
-        };
-      };
-      
-      
-      const handleTyping = debounce(() => {
-      
-        setIsTyping(false);
-      }, 2000); //e fals dupa 2 sec de inactivitate
-      
-   
-      const onTextChange = (event) => {
-        setIsTyping(true);
-        handleTyping();
-      };
-
-      const resetSeenStatus = () => {
-        setTimeout(() => {
-          setIsSeen(false);
-        }, 2000); 
-      };
-  
- //conectarea cu websocket; setez subiectele pt abonare
-    let onConnected = () => {
-      setTopics(['/topic/messages','/topic/seen'])
-      console.log("Connected!!")
-    }
-
-
-//un server la care se conecteaza toti userii la socket
     return (
         <div className="chat-container">
             {/*lista de mesaje*/}
-        <div className="message-container">
-            {messages.map((msg, index) => ( //parcurg lista de messages
-                <div
-                    key={index} //indexul unic al fiecarui mesaj
-                    //aici am vrut sa pun clase diferite pt mesajele mele vs cele primite
-                    className={`message ${msg.sender === username ? 'sender-me' : 'sender-other'}`}
-                >
-                    {msg.sender}: {msg.content} {/*afisez expeditorul mesajului si cu mesaju lui*/}
-                    {isSeen && index === messages.length -1 && <div>Seen</div>} {/*sa apara seen la ultimul mesaj*/}
-  {isTyping && msg.sender.toUpperCase() !== username.toUpperCase() &&  messages.length -1 && <div>Typing...</div>}
-                </div>
-            ))}
-        </div>
-        <Form>
-            {/*camp de text si buton de trimitere*/}
+            <div className="message-container">
+                {messages.map((msg, index) => (
+                    <div
+                        key={index}
+                        className={`message ${msg.sender === username ? "sender-me" : "sender-other"}`}
+                    >
+                        {msg.sender}: {msg.content} {/*afiseaza userul care a dat mesaj si mesajul pe care l a dat*/}
+                        {msg.seen && <span className="seen-indicator">✔</span>} {/*daca msg.seen === true coloram bifa*/}
+                    </div>
+                ))}
+                {/*daca isTyping===true apare mesajul*/}
+                {isTyping && <div className="typing-indicator">⌨️ Typing...</div>}
+            </div>
+
+            {/*input pt scrierea mesajelor*/}
+            <Form>
+                {/* form.control pt input text*/}
                 <Form.Control
-                    type="text"
-                    value={messageInput} //continutu campului e sincronizat cu messageInput
-                    onChange={handleChange}
-                    onFocus={handleFocus}
-                    placeholder="Type your message..."
-                    style={{ marginTop:"5px"}}
-                    className="bg-dark text-light" 
-                
-
+                    type="text" {/*tipul inputului*/}
+                    value={messageInput} {/*actualizezz valorile in timp real*/}
+                    onChange={(e) => {
+                        setMessageInput(e.target.value);
+                        sendTypingNotification(); // trimit notificare de typing
+                    }}
+                    onFocus={sendSeenMessage} // trimit notificare de seen când userul dau click pe input
+                    placeholder="Type your message..." {/*cand inputul e gol*/}
+                    style={{ marginTop: "5px" }}
+                    className="bg-dark text-light"
                 />
-         </Form>
-        <Button style={{marginTop:"5px"}} variant='dark' onClick={handleSendMessage}>Send</Button>
-
-{/*stabilesc conexiunea la websocket*/}
-        <SockJsClient
-            url="http://chat-service.localhost/ws" //url serverului websocket la care se conecteaza
-           // url="http://localhost:8086/ws"
-            topics={topics} //lista de subiecte la care clientul e abonat
-            onConnect={onConnected}
-            onMessage={onMessageReceived}
-            ref={(client) => {
-              if (client) {
-                  clientRef.current = client; //leg referinta la instanta socketjsclient
-              }
-              //aici dau referinta la acest client de socket
-          }}
-        />
-    </div>
+            </Form>
+            <Button style={{ marginTop: "5px" }} variant="dark" onClick={handleSendMessage}>
+                Send
+            </Button>
+        </div>
     );
 };
 

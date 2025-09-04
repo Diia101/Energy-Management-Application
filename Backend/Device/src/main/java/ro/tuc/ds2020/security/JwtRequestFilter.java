@@ -15,8 +15,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-////procesez fiecare cerere http si verific daca e valid tokenul
-//extrag și validez token-ul JWT din antetul cererii, autentifică utilizatorul dacă token-ul este valid
+
+////procesez fiecare cerere http si verific daca exista un token valid in headerul http
+//dacă token-ul este valid, utilizatorul este autentificat și i se permite accesul la resurse protejate
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 
@@ -28,9 +29,10 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
     //procesez cererile http si extrag token
     @Override
+    //verific daca requestul contine un token valid
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-//extrag token din antet
+    //extrag token din antetul Authorization
         final String requestTokenHeader = request.getHeader("Authorization");
         System.out.println("requestTokenHeader: "+ requestTokenHeader);
         System.out.println("request: "+request);
@@ -44,7 +46,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             //obtin username din token
             try {
                 username = jwtTokenUtil.getUserNameFromJwtToken(jwtToken);
-               // username = jwtTokenUtil.getUsernameFromToken(jwtToken);
                 System.out.println("username cautat: "+username);
             } catch (IllegalArgumentException e) {
                 System.out.println("Unable to get JWT Token");
@@ -56,7 +57,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             logger.warn("JWT Token does not begin with Bearer String");
         }
         System.out.println("bbbbbbbbbbbbbbbbbbbbb");
-        UserDetails userDetails = this.jwtUserDetailsService.loadUserByUsername(username); //
+        //incarc informatiile userului din baza de date
+        UserDetails userDetails = this.jwtUserDetailsService.loadUserByUsername(username);
 
         // verific daca user e deja autentificat
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

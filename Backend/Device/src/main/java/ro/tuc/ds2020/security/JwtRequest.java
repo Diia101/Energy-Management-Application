@@ -2,7 +2,9 @@ package ro.tuc.ds2020.security;
 
 import java.io.Serializable;
 
-//dto pt a transporta datele de autentificare de la client catre server
+//este modelul folosit pentru autentificare
+//conține username și password, pe care frontend-ul le trimite când cineva se loghează
+//dto pt a transporta datele de autentificare de la frontend catre backend
 public class JwtRequest implements Serializable {
 //identificator unic al clasei pentru procesul de serializare
     private static final long serialVersionUID = 5926468583005150707L;
@@ -11,7 +13,6 @@ public class JwtRequest implements Serializable {
     private String password;
 
 
-    //need default constructor for JSON Parsing
     public JwtRequest()
     {
 

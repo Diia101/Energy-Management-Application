@@ -17,11 +17,11 @@ import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 //gestionez autentificarea utilizatorilor;extrag detaliile userilor din baza de date si le prelucrez
-@Service
+//caută utilizatorul în baza de date pe baza username-ului
+//este folosit de Spring Security pentru autentificare@Service
 public class JwtUserDetailsService implements UserDetailsService {
     @Autowired
     PersonService personService; //ppt a accesa user din baza de date
-
     @Autowired
     private PasswordEncoder passwordEncoder;//encoderul utlizat pt compararea parolelor criptate din baza de date cu cele ale users
 
@@ -34,7 +34,6 @@ public class JwtUserDetailsService implements UserDetailsService {
         if (person == null) {
             throw new UsernameNotFoundException("User not found with username: " + username);
         }
-
 
         //lista de roluri pt user
         List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + person.getRole()));

@@ -265,6 +265,12 @@ const Admin = () => {
    
   };
 
+  const handleChat = (userName) => {
+    localStorage.setItem('chatUserName', userName); // salvez username în localStorage
+    navigate(`/chat`); // navighez către pagina de chat
+  };
+
+
   return (
     <div className="admin-container">
       <h1>Admin Page</h1>
@@ -277,7 +283,7 @@ const Admin = () => {
         </Button>
         <Button onClick={handleLogout} variant="danger" style={{marginLeft:"20px","marginTop":"20px"}}>Logout</Button>
         
-                <Button onClick={() => navigate(`/chat`)}>Chat</Button>
+                {/*<Button onClick={() => navigate(`/chat`)}>Chat</Button>*/}
       </div>
       <Table striped bordered hover responsive className="device-table">
         <thead>
@@ -303,8 +309,8 @@ const Admin = () => {
                 <Button variant="danger" onClick={() => handleDelete(user.id)}>
                   Delete
                 </Button>
-                <Button onClick={() => navigate(`/chat`)}>Chat</Button>
-        
+                {/*<Button onClick={() => navigate(`/chat`)}>Chat</Button>*/}
+                <Button onClick={() => handleChat(user.username)}>Chat</Button>
               </td>
             </tr>
           ))}

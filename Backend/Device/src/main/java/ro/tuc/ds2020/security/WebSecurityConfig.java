@@ -14,7 +14,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
-//configurez securitatea aplicatiei cu spring security
+
+//stabileste ce endpoint-uri sunt protejate și care sunt publice
+//configurez autentificarea folosind JWT
+//criptez parolele cu bcryptpasswordencoder
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
@@ -40,7 +43,7 @@ public class WebSecurityConfig {
                 .csrf().disable()
                 //.cors().and()
                 .authorizeRequests()
-              //  .antMatchers("/device/login", "authenticate").permitAll()
+                //  .antMatchers("/device/login", "authenticate").permitAll()
                 .antMatchers("/device/all").permitAll()
                 .antMatchers("/device/devByUser").authenticated()
                 .anyRequest().authenticated()
@@ -56,9 +59,9 @@ public class WebSecurityConfig {
         return http.build();
     }
 
-//utilizat pt autentificare; verifica credentialele utilizatorului
+    //utilizat pt autentificare; verifica credentialele utilizatorului
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
-}
+    }
 }
